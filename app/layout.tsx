@@ -1,22 +1,23 @@
 import type { Metadata } from "next";
-import { Fraunces, Inter, JetBrains_Mono } from "next/font/google";
+import { Bebas_Neue, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const fraunces = Fraunces({
-  variable: "--font-fraunces",
+const bebas = Bebas_Neue({
+  variable: "--font-display",
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
+  weight: ["400"],
   display: "swap",
 });
 
-const inter = Inter({
-  variable: "--font-inter",
+const jakarta = Plus_Jakarta_Sans({
+  variable: "--font-body",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
 const jbmono = JetBrains_Mono({
-  variable: "--font-jbmono",
+  variable: "--font-mono",
   subsets: ["latin"],
   display: "swap",
 });
@@ -33,7 +34,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${fraunces.variable} ${inter.variable} ${jbmono.variable} antialiased`}>
+      <body className={`${bebas.variable} ${jakarta.variable} ${jbmono.variable} antialiased`}>
         {children}
       </body>
     </html>

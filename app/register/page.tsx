@@ -198,8 +198,7 @@ export default function RegisterPage() {
           </div>
           <h1 className="font-display text-3xl mb-2 text-ink">You&apos;re registered</h1>
           <p className="text-ink-soft mb-6 leading-relaxed">
-            Thanks, {form.full_name.split(" ")[0]}. A tribe leader will reach out
-            on WhatsApp soon.
+            Thanks, {form.full_name.split(" ")[0]} A tribe leader will reach out to you soon.
           </p>
 
           <div className="bg-surface border border-border rounded-2xl p-5 mb-8 text-left space-y-2 text-sm">
@@ -420,7 +419,7 @@ export default function RegisterPage() {
                 )}
                 {knowsTribe === "no" && (
                   <p className="text-xs text-ink-muted leading-relaxed">
-                    No problem — you&apos;ll be marked as <em>Unassigned</em> and a tribe leader will place you.
+                    No problem — you&apos; will be assigned to a tribe soon.
                   </p>
                 )}
               </FieldWrapper>
