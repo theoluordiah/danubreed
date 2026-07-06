@@ -1,22 +1,38 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import {
   TRIBES,
   SCHOOL_LEVELS,
   UNITS_OF_SERVICE,
+  calculateAge,
   type Tribe,
   type SchoolLevel,
   type UnitOfService,
 } from "@/lib/types";
 
-const TRIBE_STYLES: Record<Tribe | "Unassigned", string> = {
-  Amber: "bg-amber-jewel text-ink",
-  Ruby: "bg-ruby-jewel text-parchment",
-  Diamond: "bg-diamond-jewel text-ink",
-  Emerald: "bg-emerald-jewel text-parchment",
-  Unassigned: "bg-white/10 text-parchment",
+const TRIBE_INFO: Record<string, { style: string; description: string; borderColor: string }> = {
+  Amber: {
+    style: "bg-amber-jewel text-white",
+    description: "Wisdom & counsel",
+    borderColor: "bg-amber-jewel",
+  },
+  Ruby: {
+    style: "bg-ruby-jewel text-white",
+    description: "Valour & service",
+    borderColor: "bg-ruby-jewel",
+  },
+  Diamond: {
+    style: "bg-diamond-jewel text-ink",
+    description: "Purity & leadership",
+    borderColor: "bg-diamond-jewel",
+  },
+  Emerald: {
+    style: "bg-emerald-jewel text-white",
+    description: "Growth & nurture",
+    borderColor: "bg-emerald-jewel",
+  },
 };
 
 type FormState = {
@@ -39,34 +55,108 @@ const initialState: FormState = {
   completed_membership_class: "",
 };
 
+type FieldErrors = Partial<Record<keyof FormState | "knowsTribe", string>>;
+
 export default function RegisterPage() {
   const [form, setForm] = useState<FormState>(initialState);
   const [knowsTribe, setKnowsTribe] = useState<"yes" | "no" | "">("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [touched, setTouched] = useState<Set<string>>(new Set());
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((f) => ({ ...f, [key]: value }));
   }
 
-  function validate(): string | null {
-    if (!form.full_name.trim()) return "Please enter your full name.";
-    if (knowsTribe === "yes" && !form.tribe) return "Please select your tribe.";
-    if (!form.date_of_birth) return "Please enter your date of birth.";
-    if (!form.school_level) return "Please select your school level.";
-    if (!form.whatsapp_number.trim()) return "Please enter your WhatsApp number.";
-    if (!form.completed_membership_class) return "Please answer the membership class question.";
-    return null;
+  function markTouched(field: string) {
+    setTouched((prev) => new Set(prev).add(field));
+  }
+
+  const validateField = useCallback(
+    (field: string, f: FormState, kt: typeof knowsTribe): string | undefined => {
+      switch (field) {
+        case "full_name":
+          return !f.full_name.trim() ? "Please enter your full name" : undefined;
+        case "tribe":
+          return kt === "yes" && !f.tribe ? "Please select your tribe" : undefined;
+        case "date_of_birth":
+          return !f.date_of_birth ? "Please enter your date of birth" : undefined;
+        case "school_level":
+          return !f.school_level ? "Please select your school level" : undefined;
+        case "whatsapp_number":
+          if (!f.whatsapp_number.trim()) return "Please enter your WhatsApp number";
+          if (!/^\d{11,}$/.test(f.whatsapp_number.replace(/\s/g, "")))
+            return "Enter at least 11 digits";
+          return undefined;
+        case "completed_membership_class":
+          return !f.completed_membership_class
+            ? "Please answer this question"
+            : undefined;
+        case "knowsTribe":
+          return !kt ? "Please select an option" : undefined;
+        default:
+          return undefined;
+      }
+    },
+    [],
+  );
+
+  const allErrors = useMemo(() => {
+    const errs: FieldErrors = {};
+    const fields: (keyof FormState | "knowsTribe")[] = [
+      "full_name",
+      "knowsTribe",
+      "tribe",
+      "date_of_birth",
+      "school_level",
+      "whatsapp_number",
+      "completed_membership_class",
+    ];
+    for (const f of fields) {
+      const msg =
+        f === "knowsTribe"
+          ? validateField(f, form, knowsTribe)
+          : validateField(f, form, knowsTribe);
+      if (msg) errs[f] = msg;
+    }
+    return errs;
+  }, [form, knowsTribe, validateField]);
+
+  function canSubmit(): boolean {
+    return Object.keys(allErrors).length === 0;
+  }
+
+  function getError(field: keyof FieldErrors): string | null {
+    return touched.has(field) ? (fieldErrors[field] ?? null) : null;
+  }
+
+  function handleBlur(field: keyof FieldErrors) {
+    markTouched(field);
+    const msg = validateField(field, form, knowsTribe);
+    setFieldErrors((prev) => ({ ...prev, [field]: msg }));
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const validationError = validate();
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
+
+    const allTouched = new Set(touched);
+    const fields = [
+      "full_name",
+      "knowsTribe",
+      "tribe",
+      "date_of_birth",
+      "school_level",
+      "whatsapp_number",
+      "completed_membership_class",
+    ];
+    for (const f of fields) allTouched.add(f);
+    setTouched(allTouched);
+    setFieldErrors(allErrors);
+
+    if (!canSubmit()) return;
+
     setError(null);
     setSubmitting(true);
 
@@ -94,25 +184,58 @@ export default function RegisterPage() {
     setSuccess(true);
   }
 
+  const age = form.date_of_birth ? calculateAge(form.date_of_birth) : null;
+
   if (success) {
     return (
-      <main className="min-h-screen bg-ink text-parchment flex items-center justify-center px-6">
-        <div className="max-w-md text-center">
-          <div className="w-14 h-14 mx-auto mb-6 rounded-full bg-emerald-jewel/20 flex items-center justify-center text-emerald-jewel text-2xl">
-            ✓
+      <main className="min-h-screen bg-cream flex items-center justify-center px-6">
+        <div className="max-w-md text-center fade-in">
+          <div className="relative mx-auto mb-6 w-20 h-20 flex items-center justify-center">
+            <div className="absolute inset-0 rounded-full bg-emerald-jewel/15 animate-ping" style={{ animationDuration: "1.5s" }} />
+            <div className="relative w-16 h-16 rounded-full bg-emerald-jewel/10 flex items-center justify-center text-emerald-jewel text-3xl">
+              ✓
+            </div>
           </div>
-          <h1 className="font-display text-3xl mb-3">You&apos;re registered</h1>
-          <p className="text-parchment/60 mb-8">
-            Thanks, {form.full_name.split(" ")[0]}. Your details have been saved.
-            A tribe leader will be in touch on WhatsApp.
+          <h1 className="font-display text-3xl mb-2 text-ink">You&apos;re registered</h1>
+          <p className="text-ink-soft mb-6 leading-relaxed">
+            Thanks, {form.full_name.split(" ")[0]}. A tribe leader will reach out
+            on WhatsApp soon.
           </p>
+
+          <div className="bg-surface border border-border rounded-2xl p-5 mb-8 text-left space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-ink-muted">Name</span>
+              <span className="font-medium text-ink">{form.full_name}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-ink-muted">Tribe</span>
+              <span className="font-medium text-ink">{knowsTribe === "yes" ? form.tribe : "Not yet assigned"}</span>
+            </div>
+            {age !== null && (
+              <div className="flex justify-between">
+                <span className="text-ink-muted">Age</span>
+                <span className="font-medium text-ink">{age}</span>
+              </div>
+            )}
+            <div className="flex justify-between">
+              <span className="text-ink-muted">School level</span>
+              <span className="font-medium text-ink">{form.school_level}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-ink-muted">Unit of service</span>
+              <span className="font-medium text-ink">{form.unit_of_service}</span>
+            </div>
+          </div>
+
           <button
             onClick={() => {
               setForm(initialState);
               setKnowsTribe("");
+              setTouched(new Set());
+              setFieldErrors({});
               setSuccess(false);
             }}
-            className="px-6 py-2 rounded-full border border-parchment/30 hover:bg-white/5 transition"
+            className="px-6 py-2.5 rounded-full border border-border text-ink-soft hover:text-ink hover:border-border-hover hover:bg-surface transition-all font-medium"
           >
             Register another person
           </button>
@@ -122,162 +245,268 @@ export default function RegisterPage() {
   }
 
   return (
-    <main className="min-h-screen bg-ink text-parchment px-6 py-16 flex flex-col items-center">
-      <div className="w-full max-w-lg">
-        <p className="uppercase tracking-[0.3em] text-xs text-parchment/50 mb-2 text-center">
+    <main className="min-h-screen bg-cream px-6 py-16 flex flex-col items-center">
+      <div className="w-full max-w-lg fade-in">
+        <p className="uppercase tracking-[0.25em] text-xs text-ink-muted mb-2 text-center">
           Danubreed
         </p>
-        <h1 className="font-display text-4xl font-semibold mb-2 text-center">
+        <h1 className="font-display text-4xl font-semibold mb-1 text-center text-ink">
           Member Registration
         </h1>
-        <p className="text-parchment/60 text-center mb-10">
+        <p className="text-ink-soft text-center mb-10 leading-relaxed">
           Fill in your details below. It takes less than two minutes.
         </p>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Full name */}
-          <div>
-            <label className="block text-sm mb-2 text-parchment/70">Full name</label>
-            <input
-              type="text"
-              value={form.full_name}
-              onChange={(e) => update("full_name", e.target.value)}
-              placeholder="e.g. Ada Okafor"
-              className="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-parchment/40 transition"
-            />
-          </div>
-
-          {/* Tribe knowledge */}
-          <div>
-            <label className="block text-sm mb-2 text-parchment/70">
-              Do you know your current tribe?
-            </label>
-            <div className="flex gap-3 mb-4">
-              {(["yes", "no"] as const).map((opt) => (
-                <button
-                  type="button"
-                  key={opt}
-                  onClick={() => {
-                    setKnowsTribe(opt);
-                    if (opt === "no") update("tribe", "");
-                  }}
-                  className={`px-5 py-2 rounded-full border text-sm capitalize transition ${
-                    knowsTribe === opt
-                      ? "bg-parchment text-ink border-parchment"
-                      : "border-white/15 hover:bg-white/5"
-                  }`}
-                >
-                  {opt}
-                </button>
-              ))}
+        <form onSubmit={handleSubmit} className="space-y-10">
+          {/* ── Section 1: Personal Info ── */}
+          <section>
+            <div className="flex items-center gap-2 mb-4">
+              <span className="w-1.5 h-1.5 rounded-full bg-orange" />
+              <h2 className="font-display text-sm uppercase tracking-wider text-ink-muted">
+                Personal Info
+              </h2>
             </div>
 
-            {knowsTribe === "yes" && (
-              <div className="grid grid-cols-4 gap-3">
-                {TRIBES.map((t) => (
-                  <button
-                    type="button"
-                    key={t}
-                    data-selected={form.tribe === t}
-                    onClick={() => update("tribe", t)}
-                    className={`gem-chip h-20 flex items-center justify-center text-xs font-medium ${TRIBE_STYLES[t]}`}
-                  >
-                    {t}
-                  </button>
-                ))}
-              </div>
-            )}
-            {knowsTribe === "no" && (
-              <p className="text-xs text-parchment/50">
-                No problem — you&apos;ll be marked as <em>Unassigned</em> and a tribe leader will place you.
-              </p>
-            )}
-          </div>
+            <div className="space-y-5 pl-4 border-l border-border">
+              <FieldWrapper error={getError("full_name")}>
+                <label className="block text-sm font-medium mb-1.5 text-ink-soft">
+                  Full name
+                </label>
+                <input
+                  type="text"
+                  value={form.full_name}
+                  onChange={(e) => update("full_name", e.target.value)}
+                  onBlur={() => handleBlur("full_name")}
+                  placeholder="e.g. Ada Okafor"
+                  className="w-full rounded-xl bg-surface border border-border px-4 py-3 text-ink outline-none focus:border-orange/50 focus:ring-2 focus:ring-orange/10 transition placeholder:text-ink-muted"
+                />
+              </FieldWrapper>
 
-          {/* DOB */}
-          <div>
-            <label className="block text-sm mb-2 text-parchment/70">Date of birth</label>
-            <input
-              type="date"
-              value={form.date_of_birth}
-              onChange={(e) => update("date_of_birth", e.target.value)}
-              max={new Date().toISOString().split("T")[0]}
-              className="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-parchment/40 transition [color-scheme:dark]"
-            />
-          </div>
+              <FieldWrapper error={getError("date_of_birth")}>
+                <label className="block text-sm font-medium mb-1.5 text-ink-soft">
+                  Date of birth
+                </label>
+                <div className="relative">
+                  <input
+                    type="date"
+                    value={form.date_of_birth}
+                    onChange={(e) => update("date_of_birth", e.target.value)}
+                    onBlur={() => handleBlur("date_of_birth")}
+                    max={new Date().toISOString().split("T")[0]}
+                    className="w-full rounded-xl bg-surface border border-border px-4 py-3 text-ink outline-none focus:border-orange/50 focus:ring-2 focus:ring-orange/10 transition"
+                  />
+                  {age !== null && (
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ink-muted pointer-events-none">
+                      {age} years
+                    </span>
+                  )}
+                </div>
+              </FieldWrapper>
 
-          {/* School level */}
-          <div>
-            <label className="block text-sm mb-2 text-parchment/70">School level</label>
-            <select
-              value={form.school_level}
-              onChange={(e) => update("school_level", e.target.value as SchoolLevel)}
-              className="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-parchment/40 transition"
-            >
-              <option value="" disabled className="text-ink">
-                Select one
-              </option>
-              {SCHOOL_LEVELS.map((s) => (
-                <option key={s} value={s} className="text-ink">
-                  {s}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Unit of service */}
-          <div>
-            <label className="block text-sm mb-2 text-parchment/70">Unit of service</label>
-            <select
-              value={form.unit_of_service}
-              onChange={(e) => update("unit_of_service", e.target.value as UnitOfService)}
-              className="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-parchment/40 transition"
-            >
-              {UNITS_OF_SERVICE.map((u) => (
-                <option key={u} value={u} className="text-ink">
-                  {u}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* WhatsApp */}
-          <div>
-            <label className="block text-sm mb-2 text-parchment/70">WhatsApp number</label>
-            <input
-              type="tel"
-              value={form.whatsapp_number}
-              onChange={(e) => update("whatsapp_number", e.target.value)}
-              placeholder="e.g. 08012345678"
-              className="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-parchment/40 transition"
-            />
-          </div>
-
-          {/* Membership class */}
-          <div>
-            <label className="block text-sm mb-2 text-parchment/70">
-              Have you completed membership class?
-            </label>
-            <div className="flex gap-3">
-              {(["yes", "no"] as const).map((opt) => (
-                <button
-                  type="button"
-                  key={opt}
-                  onClick={() => update("completed_membership_class", opt)}
-                  className={`px-5 py-2 rounded-full border text-sm capitalize transition ${
-                    form.completed_membership_class === opt
-                      ? "bg-parchment text-ink border-parchment"
-                      : "border-white/15 hover:bg-white/5"
-                  }`}
+              <FieldWrapper error={getError("school_level")}>
+                <label className="block text-sm font-medium mb-1.5 text-ink-soft">
+                  School level
+                </label>
+                <select
+                  value={form.school_level}
+                  onChange={(e) => update("school_level", e.target.value as SchoolLevel)}
+                  onBlur={() => handleBlur("school_level")}
+                  className="w-full rounded-xl bg-surface border border-border px-4 py-3 text-ink outline-none focus:border-orange/50 focus:ring-2 focus:ring-orange/10 transition"
                 >
-                  {opt}
-                </button>
-              ))}
+                  <option value="" disabled>
+                    Select one
+                  </option>
+                  {SCHOOL_LEVELS.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </FieldWrapper>
             </div>
-          </div>
+          </section>
+
+          {/* ── Section 2: Tribe & Service ── */}
+          <section>
+            <div className="flex items-center gap-2 mb-4">
+              <span className="w-1.5 h-1.5 rounded-full bg-diamond-jewel" />
+              <h2 className="font-display text-sm uppercase tracking-wider text-ink-muted">
+                Tribe &amp; Service
+              </h2>
+            </div>
+
+            <div className="space-y-5 pl-4 border-l border-border">
+              <FieldWrapper error={getError("knowsTribe")}>
+                <label className="block text-sm font-medium mb-2 text-ink-soft">
+                  Do you know your current tribe?
+                </label>
+                <div className="flex gap-3 mb-4">
+                  {(["yes", "no"] as const).map((opt) => (
+                    <button
+                      type="button"
+                      key={opt}
+                      onClick={() => {
+                        setKnowsTribe(opt);
+                        markTouched("knowsTribe");
+                        const msg = validateField("knowsTribe", form, opt);
+                        setFieldErrors((prev) => ({ ...prev, knowsTribe: msg }));
+                        if (opt === "no") {
+                          update("tribe", "");
+                          markTouched("tribe");
+                          setFieldErrors((prev) => ({ ...prev, tribe: undefined }));
+                        }
+                      }}
+                      className={`px-5 py-2 rounded-full border text-sm capitalize transition-all ${
+                        knowsTribe === opt
+                          ? "bg-orange text-white border-orange"
+                          : "bg-surface text-ink-soft border-border hover:border-border-hover hover:scale-[1.02] active:scale-[0.98]"
+                      }`}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+
+                {knowsTribe === "yes" && (
+                  <div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-2">
+                      {TRIBES.map((t, i) => (
+                        <button
+                          type="button"
+                          key={t}
+                          onClick={() => {
+                            update("tribe", t);
+                            markTouched("tribe");
+                            setFieldErrors((prev) => ({ ...prev, tribe: undefined }));
+                          }}
+                          onBlur={() => handleBlur("tribe")}
+                          className={`
+                            relative flex flex-col items-center justify-center gap-0.5
+                            h-28 rounded-xl pt-3 pb-3 px-2
+                            border-2 transition-all duration-200
+                            bg-surface/60
+                            hover:bg-surface hover:scale-[1.03]
+                            focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange/60
+                            ${form.tribe === t
+                              ? "border-orange bg-surface scale-105 shadow-sm"
+                              : "border-border"
+                            }
+                            fade-in
+                          `}
+                          style={{ animationDelay: `${i * 0.08}s` }}
+                        >
+                          <span className={`absolute top-0 left-3 right-3 h-1 rounded-full ${TRIBE_INFO[t].borderColor}`} />
+
+                          {form.tribe === t && (
+                            <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-orange text-white flex items-center justify-center text-[10px] font-bold shadow-xs">
+                              ✓
+                            </span>
+                          )}
+
+                          <span className={`text-xs sm:text-sm font-semibold ${TRIBE_INFO[t].style}`}>
+                            {t}
+                          </span>
+
+                          <span className="text-[10px] text-ink-muted leading-tight text-center px-0.5">
+                            {TRIBE_INFO[t].description}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                    {getError("tribe") && (
+                      <p className="text-xs text-ruby-jewel mt-1">{getError("tribe")}</p>
+                    )}
+                  </div>
+                )}
+                {knowsTribe === "no" && (
+                  <p className="text-xs text-ink-muted leading-relaxed">
+                    No problem — you&apos;ll be marked as <em>Unassigned</em> and a tribe leader will place you.
+                  </p>
+                )}
+              </FieldWrapper>
+
+              <FieldWrapper error={getError("whatsapp_number")}>
+                <label className="block text-sm font-medium mb-1.5 text-ink-soft">
+                  WhatsApp number
+                </label>
+                <input
+                  type="tel"
+                  value={form.whatsapp_number}
+                  onChange={(e) =>
+                    update("whatsapp_number", e.target.value.replace(/\s/g, ""))
+                  }
+                  onBlur={() => handleBlur("whatsapp_number")}
+                  placeholder="e.g. 08012345678"
+                  className="w-full rounded-xl bg-surface border border-border px-4 py-3 text-ink outline-none focus:border-orange/50 focus:ring-2 focus:ring-orange/10 transition placeholder:text-ink-muted"
+                />
+                <p className="text-[11px] text-ink-muted mt-1">
+                  Enter at least 11 digits (no spaces)
+                </p>
+              </FieldWrapper>
+
+              <FieldWrapper>
+                <label className="block text-sm font-medium mb-1.5 text-ink-soft">
+                  Unit of service
+                </label>
+                <select
+                  value={form.unit_of_service}
+                  onChange={(e) => update("unit_of_service", e.target.value as UnitOfService)}
+                  className="w-full rounded-xl bg-surface border border-border px-4 py-3 text-ink outline-none focus:border-orange/50 focus:ring-2 focus:ring-orange/10 transition"
+                >
+                  {UNITS_OF_SERVICE.map((u) => (
+                    <option key={u} value={u}>
+                      {u}
+                    </option>
+                  ))}
+                </select>
+              </FieldWrapper>
+            </div>
+          </section>
+
+          {/* ── Section 3: Membership ── */}
+          <section>
+            <div className="flex items-center gap-2 mb-4">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-jewel" />
+              <h2 className="font-display text-sm uppercase tracking-wider text-ink-muted">
+                Membership
+              </h2>
+            </div>
+
+            <div className="space-y-5 pl-4 border-l border-border">
+              <FieldWrapper error={getError("completed_membership_class")}>
+                <label className="block text-sm font-medium mb-2 text-ink-soft">
+                  Have you completed membership class?
+                </label>
+                <div className="flex gap-3">
+                  {(["yes", "no"] as const).map((opt) => (
+                    <button
+                      type="button"
+                      key={opt}
+                      onClick={() => {
+                        update("completed_membership_class", opt);
+                        markTouched("completed_membership_class");
+                        setFieldErrors((prev) => ({
+                          ...prev,
+                          completed_membership_class: undefined,
+                        }));
+                      }}
+                      onBlur={() => handleBlur("completed_membership_class")}
+                      className={`px-5 py-2 rounded-full border text-sm capitalize transition-all ${
+                        form.completed_membership_class === opt
+                          ? "bg-orange text-white border-orange"
+                          : "bg-surface text-ink-soft border-border hover:border-border-hover hover:scale-[1.02] active:scale-[0.98]"
+                      }`}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              </FieldWrapper>
+            </div>
+          </section>
 
           {error && (
-            <p className="text-sm text-ruby-jewel bg-ruby-jewel/10 border border-ruby-jewel/30 rounded-lg px-4 py-3">
+            <p className="text-sm text-ruby-jewel bg-ruby-jewel/10 border border-ruby-jewel/30 rounded-xl px-4 py-3">
               {error}
             </p>
           )}
@@ -285,12 +514,34 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-3 rounded-full bg-parchment text-ink font-medium hover:bg-parchment-dim transition disabled:opacity-50"
+            className="w-full py-3.5 rounded-full bg-orange text-white font-semibold hover:bg-orange-deep hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 disabled:hover:scale-100 shadow-sm"
           >
-            {submitting ? "Submitting…" : "Complete registration"}
+            {submitting ? (
+              <span className="inline-flex items-center gap-2">
+                <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white/80 animate-spin" />
+                Submitting…
+              </span>
+            ) : (
+              "Complete registration"
+            )}
           </button>
         </form>
       </div>
     </main>
+  );
+}
+
+function FieldWrapper({
+  children,
+  error,
+}: {
+  children: React.ReactNode;
+  error?: string | null;
+}) {
+  return (
+    <div>
+      {children}
+      {error && <p className="text-xs text-ruby-jewel mt-1">{error}</p>}
+    </div>
   );
 }

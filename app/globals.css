@@ -1,10 +1,18 @@
 @import "tailwindcss";
 
 :root {
-  --ink: #14161f;
-  --ink-soft: #1c1f2b;
-  --parchment: #f6f4ef;
-  --parchment-dim: #ece8de;
+  --cream: #f5f3ef;
+  --cream-dim: #e8e4dc;
+  --surface: #ffffff;
+  --ink: #1c1c20;
+  --ink-soft: #5c5c62;
+  --ink-muted: #949498;
+  --border: #e2dfd8;
+  --border-hover: #cdc9c0;
+
+  --orange: #d9731a;
+  --orange-soft: #fef0e0;
+  --orange-deep: #b85e0f;
 
   --amber: #e8a33d;
   --ruby: #c4325a;
@@ -17,10 +25,17 @@
 }
 
 @theme inline {
+  --color-cream: var(--cream);
+  --color-cream-dim: var(--cream-dim);
+  --color-surface: var(--surface);
   --color-ink: var(--ink);
   --color-ink-soft: var(--ink-soft);
-  --color-parchment: var(--parchment);
-  --color-parchment-dim: var(--parchment-dim);
+  --color-ink-muted: var(--ink-muted);
+  --color-border: var(--border);
+  --color-border-hover: var(--border-hover);
+  --color-orange: var(--orange);
+  --color-orange-soft: var(--orange-soft);
+  --color-orange-deep: var(--orange-deep);
   --color-amber-jewel: var(--amber);
   --color-ruby-jewel: var(--ruby);
   --color-diamond-jewel: var(--diamond);
@@ -30,23 +45,63 @@
   --font-mono: var(--font-mono);
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+  background-color: var(--cream);
+  color: var(--ink);
+}
+
+p {
+  line-height: 1.7;
 }
 
 .font-display {
   font-family: var(--font-display);
+  letter-spacing: -0.01em;
 }
 
-/* Faceted gem chip used on the registration page's tribe selector */
-.gem-chip {
-  position: relative;
-  clip-path: polygon(50% 0%, 100% 20%, 100% 80%, 50% 100%, 0% 80%, 0% 20%);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+::selection {
+  background-color: var(--orange);
+  color: white;
 }
-.gem-chip:hover {
-  transform: translateY(-2px);
+
+::-webkit-scrollbar {
+  width: 6px;
 }
-.gem-chip[data-selected="true"] {
-  box-shadow: 0 0 0 3px var(--parchment), 0 0 0 6px currentColor;
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-hover);
+}
+
+.fade-in {
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }

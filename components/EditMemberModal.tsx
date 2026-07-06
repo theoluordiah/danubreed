@@ -39,7 +39,6 @@ export function EditMemberModal({
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Tribe leaders may only assign into their own tribe (enforced again by RLS server-side).
   const tribeOptions: Tribe[] =
     admin.role === "super_admin"
       ? [...TRIBES, "Unassigned"]
@@ -80,31 +79,34 @@ export function EditMemberModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-ink/60 flex items-center justify-center px-4 z-50">
-      <div className="bg-white rounded-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-ink/40 flex items-center justify-center px-4 z-50">
+      <div
+        className="bg-surface rounded-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto shadow-xl slide-up"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between mb-6">
           <h2 className="font-display text-xl text-ink">Edit member</h2>
-          <button onClick={onClose} className="text-ink/40 hover:text-ink">
+          <button onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center text-ink-muted hover:text-ink hover:bg-ink/5 transition">
             ✕
           </button>
         </div>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-xs mb-1 text-ink/60">Full name</label>
+            <label className="block text-xs font-medium mb-1 text-ink-soft">Full name</label>
             <input
               value={form.full_name}
               onChange={(e) => setForm({ ...form, full_name: e.target.value })}
-              className="w-full rounded-lg border border-ink/15 px-3 py-2 text-sm outline-none focus:border-ink/40"
+              className="w-full rounded-xl border border-border bg-cream/50 px-3 py-2.5 text-sm text-ink outline-none focus:border-orange/50 focus:ring-2 focus:ring-orange/10 focus:bg-surface transition"
             />
           </div>
 
           <div>
-            <label className="block text-xs mb-1 text-ink/60">Tribe</label>
+            <label className="block text-xs font-medium mb-1 text-ink-soft">Tribe</label>
             <select
               value={form.tribe}
               onChange={(e) => setForm({ ...form, tribe: e.target.value as Tribe })}
-              className="w-full rounded-lg border border-ink/15 px-3 py-2 text-sm outline-none focus:border-ink/40"
+              className="w-full rounded-xl border border-border bg-cream/50 px-3 py-2.5 text-sm text-ink outline-none focus:border-orange/50 focus:ring-2 focus:ring-orange/10 focus:bg-surface transition"
             >
               {tribeOptions.map((t) => (
                 <option key={t} value={t}>
@@ -115,21 +117,21 @@ export function EditMemberModal({
           </div>
 
           <div>
-            <label className="block text-xs mb-1 text-ink/60">Date of birth</label>
+            <label className="block text-xs font-medium mb-1 text-ink-soft">Date of birth</label>
             <input
               type="date"
               value={form.date_of_birth}
               onChange={(e) => setForm({ ...form, date_of_birth: e.target.value })}
-              className="w-full rounded-lg border border-ink/15 px-3 py-2 text-sm outline-none focus:border-ink/40"
+              className="w-full rounded-xl border border-border bg-cream/50 px-3 py-2.5 text-sm text-ink outline-none focus:border-orange/50 focus:ring-2 focus:ring-orange/10 focus:bg-surface transition"
             />
           </div>
 
           <div>
-            <label className="block text-xs mb-1 text-ink/60">School level</label>
+            <label className="block text-xs font-medium mb-1 text-ink-soft">School level</label>
             <select
               value={form.school_level}
               onChange={(e) => setForm({ ...form, school_level: e.target.value as SchoolLevel })}
-              className="w-full rounded-lg border border-ink/15 px-3 py-2 text-sm outline-none focus:border-ink/40"
+              className="w-full rounded-xl border border-border bg-cream/50 px-3 py-2.5 text-sm text-ink outline-none focus:border-orange/50 focus:ring-2 focus:ring-orange/10 focus:bg-surface transition"
             >
               {SCHOOL_LEVELS.map((s) => (
                 <option key={s} value={s}>
@@ -140,11 +142,11 @@ export function EditMemberModal({
           </div>
 
           <div>
-            <label className="block text-xs mb-1 text-ink/60">Unit of service</label>
+            <label className="block text-xs font-medium mb-1 text-ink-soft">Unit of service</label>
             <select
               value={form.unit_of_service}
               onChange={(e) => setForm({ ...form, unit_of_service: e.target.value as UnitOfService })}
-              className="w-full rounded-lg border border-ink/15 px-3 py-2 text-sm outline-none focus:border-ink/40"
+              className="w-full rounded-xl border border-border bg-cream/50 px-3 py-2.5 text-sm text-ink outline-none focus:border-orange/50 focus:ring-2 focus:ring-orange/10 focus:bg-surface transition"
             >
               {UNITS_OF_SERVICE.map((u) => (
                 <option key={u} value={u}>
@@ -155,44 +157,47 @@ export function EditMemberModal({
           </div>
 
           <div>
-            <label className="block text-xs mb-1 text-ink/60">WhatsApp number</label>
+            <label className="block text-xs font-medium mb-1 text-ink-soft">WhatsApp number</label>
             <input
               value={form.whatsapp_number}
               onChange={(e) => setForm({ ...form, whatsapp_number: e.target.value })}
-              className="w-full rounded-lg border border-ink/15 px-3 py-2 text-sm outline-none focus:border-ink/40"
+              className="w-full rounded-xl border border-border bg-cream/50 px-3 py-2.5 text-sm text-ink outline-none focus:border-orange/50 focus:ring-2 focus:ring-orange/10 focus:bg-surface transition"
             />
           </div>
 
-          <div className="flex items-center gap-2">
+          <label className="flex items-center gap-2.5 p-3 rounded-xl border border-border hover:bg-cream/50 transition cursor-pointer">
             <input
-              id="membership-class"
               type="checkbox"
               checked={form.completed_membership_class}
               onChange={(e) => setForm({ ...form, completed_membership_class: e.target.checked })}
+              className="w-4 h-4 rounded border-ink-muted accent-orange"
             />
-            <label htmlFor="membership-class" className="text-sm text-ink/70">
+            <span className="text-sm text-ink-soft">
               Completed membership class
-            </label>
-          </div>
+            </span>
+          </label>
 
-          {error && <p className="text-sm text-ruby-jewel">{error}</p>}
+          {error && <p className="text-sm text-ruby-jewel bg-ruby-jewel/10 border border-ruby-jewel/30 rounded-xl px-4 py-3">{error}</p>}
 
           <div className="flex items-center justify-between pt-2">
             <button
               onClick={handleDelete}
               disabled={deleting}
-              className="text-sm text-ruby-jewel hover:underline disabled:opacity-50"
+              className="text-sm text-ruby-jewel hover:text-ruby-700 hover:underline disabled:opacity-50 transition"
             >
               {deleting ? "Removing…" : "Remove member"}
             </button>
             <div className="flex gap-2">
-              <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm border border-ink/15 hover:bg-ink/5">
+              <button
+                onClick={onClose}
+                className="px-4 py-2 rounded-xl text-sm border border-border hover:bg-cream/50 transition"
+              >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="px-4 py-2 rounded-lg text-sm bg-ink text-parchment hover:bg-ink-soft disabled:opacity-50"
+                className="px-4 py-2 rounded-xl text-sm bg-orange text-white font-medium hover:bg-orange-deep disabled:opacity-50 transition shadow-sm"
               >
                 {saving ? "Saving…" : "Save changes"}
               </button>
