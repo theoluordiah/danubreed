@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+:root {
+  --ink: #14161f;
+  --ink-soft: #1c1f2b;
+  --parchment: #f6f4ef;
+  --parchment-dim: #ece8de;
+
+  --amber: #e8a33d;
+  --ruby: #c4325a;
+  --diamond: #6fc7d9;
+  --emerald: #2f8f6b;
+
+  --font-display: var(--font-fraunces);
+  --font-body: var(--font-inter);
+  --font-mono: var(--font-jbmono);
+}
+
+@theme inline {
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-parchment: var(--parchment);
+  --color-parchment-dim: var(--parchment-dim);
+  --color-amber-jewel: var(--amber);
+  --color-ruby-jewel: var(--ruby);
+  --color-diamond-jewel: var(--diamond);
+  --color-emerald-jewel: var(--emerald);
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
+  --font-mono: var(--font-mono);
+}
+
+body {
+  font-family: var(--font-body);
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+/* Faceted gem chip used on the registration page's tribe selector */
+.gem-chip {
+  position: relative;
+  clip-path: polygon(50% 0%, 100% 20%, 100% 80%, 50% 100%, 0% 80%, 0% 20%);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.gem-chip:hover {
+  transform: translateY(-2px);
+}
+.gem-chip[data-selected="true"] {
+  box-shadow: 0 0 0 3px var(--parchment), 0 0 0 6px currentColor;
+}
