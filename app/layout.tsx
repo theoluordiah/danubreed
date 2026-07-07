@@ -24,7 +24,12 @@ const jbmono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: "Danubreed",
-  description: "Danubreed membership registration and admin platform",
+  description: "Danubreed membership registration ",
+  openGraph: {
+    title: "Danubreed",
+    description: "Danubreed membership registration ",
+    images: "/image.png",
+  },
 };
 
 export default function RootLayout({
