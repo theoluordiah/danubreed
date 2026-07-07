@@ -33,6 +33,23 @@ create table members (
   updated_at timestamptz default now()
 );
 
+-- ============================================
+-- DUPLICATE CHECK FUNCTION (used by registration)
+-- ============================================
+create or replace function check_member_exists(
+  p_full_name text,
+  p_date_of_birth date
+)
+returns boolean
+language sql security definer
+as $$
+  select exists(
+    select 1 from members
+    where full_name ilike p_full_name
+      and date_of_birth = p_date_of_birth
+  );
+$$;
+
 create table admins (
   id uuid primary key references auth.users(id) on delete cascade,
   full_name text not null,

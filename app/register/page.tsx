@@ -160,7 +160,20 @@ export default function RegisterPage() {
     setError(null);
     setSubmitting(true);
 
-    const { error: insertError } = await getSupabase().from("members").insert({
+    const supabase = getSupabase();
+
+    const { data: exists } = await supabase.rpc("check_member_exists", {
+      p_full_name: form.full_name.trim(),
+      p_date_of_birth: form.date_of_birth,
+    });
+
+    if (exists) {
+      setError("A member with this name and date of birth is already registered.");
+      setSubmitting(false);
+      return;
+    }
+
+    const { error: insertError } = await supabase.from("members").insert({
       full_name: form.full_name.trim(),
       tribe: knowsTribe === "yes" ? form.tribe : "Unassigned",
       date_of_birth: form.date_of_birth,
