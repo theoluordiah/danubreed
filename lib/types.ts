@@ -15,6 +15,7 @@ export type UnitOfService =
   | "Free Spirit Media"
   | "Fierce"
   | "Dance team"
+  | "Integrative"
   | "Service Draft";
 
 export type AdminRole = "super_admin" | "tribe_leader";
@@ -57,6 +58,7 @@ export const UNITS_OF_SERVICE: UnitOfService[] = [
   "Free Spirit Media",
   "Fierce",
   "Dance team",
+  "Integrative",
   "Service Draft",
 ];
 

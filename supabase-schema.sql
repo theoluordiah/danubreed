@@ -12,7 +12,7 @@ create type school_level_enum as enum (
 
 create type unit_of_service_enum as enum (
   'None','Ushering','Drama','Greeters','Choir',
-  'Free Spirit Media','Fierce','Dance team','Service Draft'
+  'Free Spirit Media','Fierce','Dance team','Integrative','Service Draft'
 );
 
 create type admin_role as enum ('super_admin','tribe_leader');
