@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabaseClient";
+import { getSupabase } from "@/lib/supabaseClient";
 import type { AdminProfile } from "@/lib/types";
 
 export function useAdminSession() {
@@ -16,14 +16,14 @@ export function useAdminSession() {
     async function load() {
       const {
         data: { session },
-      } = await supabase.auth.getSession();
+      } = await getSupabase().auth.getSession();
 
       if (!session) {
         router.replace("/admin/login");
         return;
       }
 
-      const { data, error } = await supabase
+      const { data, error } = await getSupabase()
         .from("admins")
         .select("id, full_name, role, assigned_tribe")
         .eq("id", session.user.id)
@@ -33,7 +33,7 @@ export function useAdminSession() {
 
       if (error || !data) {
         // Authenticated with Supabase, but not registered as an admin.
-        await supabase.auth.signOut();
+        await getSupabase().auth.signOut();
         router.replace("/admin/login");
         return;
       }

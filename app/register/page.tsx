@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
+import { getSupabase } from "@/lib/supabaseClient";
 import {
   TRIBES,
   SCHOOL_LEVELS,
@@ -160,7 +160,7 @@ export default function RegisterPage() {
     setError(null);
     setSubmitting(true);
 
-    const { error: insertError } = await supabase.from("members").insert({
+    const { error: insertError } = await getSupabase().from("members").insert({
       full_name: form.full_name.trim(),
       tribe: knowsTribe === "yes" ? form.tribe : "Unassigned",
       date_of_birth: form.date_of_birth,

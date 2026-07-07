@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabaseClient";
+import { getSupabase } from "@/lib/supabaseClient";
 import { useAdminSession } from "@/components/AuthGuard";
 import { FiltersBar, type Filters } from "@/components/FiltersBar";
 import { MemberTable } from "@/components/MemberTable";
@@ -33,7 +33,7 @@ export default function AdminDashboard() {
 
     async function loadMembers() {
       setLoading(true);
-      const { data } = await supabase
+      const { data } = await getSupabase()
         .from("members")
         .select("*")
         .order("full_name", { ascending: true });
@@ -62,7 +62,7 @@ export default function AdminDashboard() {
   const unassignedCount = members.filter((m) => m.tribe === "Unassigned").length;
 
   async function handleSignOut() {
-    await supabase.auth.signOut();
+    await getSupabase().auth.signOut();
     router.push("/admin/login");
   }
 

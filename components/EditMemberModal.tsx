@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
+import { getSupabase } from "@/lib/supabaseClient";
 import {
   TRIBES,
   SCHOOL_LEVELS,
@@ -49,7 +49,7 @@ export function EditMemberModal({
   async function handleSave() {
     setSaving(true);
     setError(null);
-    const { data, error: updateError } = await supabase
+    const { data, error: updateError } = await getSupabase()
       .from("members")
       .update(form)
       .eq("id", member.id)
@@ -69,7 +69,7 @@ export function EditMemberModal({
   async function handleDelete() {
     if (!confirm(`Remove ${member.full_name} from the database? This cannot be undone.`)) return;
     setDeleting(true);
-    const { error: deleteError } = await supabase.from("members").delete().eq("id", member.id);
+    const { error: deleteError } = await getSupabase().from("members").delete().eq("id", member.id);
     setDeleting(false);
     if (deleteError) {
       setError("Could not delete this record.");
