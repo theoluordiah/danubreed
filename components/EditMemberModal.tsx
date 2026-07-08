@@ -6,6 +6,7 @@ import {
   TRIBES,
   SCHOOL_LEVELS,
   UNITS_OF_SERVICE,
+  calculateAge,
   type Member,
   type Tribe,
   type SchoolLevel,
@@ -47,6 +48,10 @@ export function EditMemberModal({
       : ["Unassigned"];
 
   async function handleSave() {
+    if (calculateAge(form.date_of_birth) < 13) {
+      setError("Member must be at least 13 years old.");
+      return;
+    }
     setSaving(true);
     setError(null);
     const { data, error: updateError } = await getSupabase()

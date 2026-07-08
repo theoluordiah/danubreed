@@ -62,6 +62,8 @@ export const UNITS_OF_SERVICE: UnitOfService[] = [
   "Service Draft",
 ];
 
+export const MIN_AGE = 13;
+
 export function calculateAge(dob: string): number {
   const birth = new Date(dob);
   const today = new Date();

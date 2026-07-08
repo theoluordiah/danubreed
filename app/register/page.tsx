@@ -82,7 +82,10 @@ export default function RegisterPage() {
         case "tribe":
           return kt === "yes" && !f.tribe ? "Please select your tribe" : undefined;
         case "date_of_birth":
-          return !f.date_of_birth ? "Please enter your date of birth" : undefined;
+          if (!f.date_of_birth) return "Please enter your date of birth";
+          const age = calculateAge(f.date_of_birth);
+          if (age < 13) return "You must be at least 13 years old";
+          return undefined;
         case "school_level":
           return !f.school_level ? "Please select your school level" : undefined;
         case "whatsapp_number":
@@ -304,6 +307,7 @@ export default function RegisterPage() {
                     value={form.date_of_birth}
                     onChange={(e) => update("date_of_birth", e.target.value)}
                     onBlur={() => handleBlur("date_of_birth")}
+                    min={new Date(new Date().setFullYear(new Date().getFullYear() - 13)).toISOString().split("T")[0]}
                     max={new Date().toISOString().split("T")[0]}
                     className="w-full rounded-xl bg-surface border border-border px-4 py-3 text-ink outline-none focus:border-orange/50 focus:ring-2 focus:ring-orange/10 transition"
                   />
