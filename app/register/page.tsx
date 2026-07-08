@@ -307,8 +307,8 @@ export default function RegisterPage() {
                     value={form.date_of_birth}
                     onChange={(e) => update("date_of_birth", e.target.value)}
                     onBlur={() => handleBlur("date_of_birth")}
-                    min={new Date(new Date().setFullYear(new Date().getFullYear() - 13)).toISOString().split("T")[0]}
-                    max={new Date().toISOString().split("T")[0]}
+                    min="1900-01-01"
+                    max={new Date(new Date().setFullYear(new Date().getFullYear() - 13)).toISOString().split("T")[0]}
                     className="w-full rounded-xl bg-surface border border-border px-4 py-3 text-ink outline-none focus:border-orange/50 focus:ring-2 focus:ring-orange/10 transition"
                   />
                   {age !== null && (
