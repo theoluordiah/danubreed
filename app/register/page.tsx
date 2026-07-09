@@ -308,7 +308,7 @@ export default function RegisterPage() {
                     onChange={(e) => update("date_of_birth", e.target.value)}
                     onBlur={() => handleBlur("date_of_birth")}
                     min="1900-01-01"
-                    max={new Date(new Date().setFullYear(new Date().getFullYear() - 13)).toISOString().split("T")[0]}
+                    max={`${new Date().getFullYear() - 13}-12-31`}
                     className="w-full rounded-xl bg-surface border border-border px-4 py-3 text-ink outline-none focus:border-orange/50 focus:ring-2 focus:ring-orange/10 transition"
                   />
                   {age !== null && (

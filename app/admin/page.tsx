@@ -97,6 +97,12 @@ export default function AdminDashboard() {
               {profile.full_name}
             </div>
             <button
+              onClick={() => router.push("/admin/print")}
+              className="text-sm px-4 py-2 rounded-xl border border-border hover:bg-surface hover:border-border-hover transition"
+            >
+              Print PDF
+            </button>
+            <button
               onClick={handleSignOut}
               className="text-sm px-4 py-2 rounded-xl border border-border hover:bg-surface hover:border-border-hover transition"
             >
