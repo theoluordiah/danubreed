@@ -25,8 +25,10 @@ export default function AdminDashboard() {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<Filters>(initialFilters);
+  const [page, setPage] = useState(1);
   const [editing, setEditing] = useState<Member | null>(null);
   const { toast, show: showToast, clear: clearToast } = useToast();
+  const PAGE_SIZE = 20;
 
   useEffect(() => {
     if (!profile) return;
@@ -58,6 +60,13 @@ export default function AdminDashboard() {
       return true;
     });
   }, [members, filters]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+
+  const paginatedMembers = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return filtered.slice(start, start + PAGE_SIZE);
+  }, [filtered, page]);
 
   const unassignedCount = members.filter((m) => m.tribe === "Unassigned").length;
 
@@ -144,7 +153,7 @@ export default function AdminDashboard() {
           <div className="bg-surface border border-border rounded-xl p-4">
             <FiltersBar
               filters={filters}
-              onChange={setFilters}
+              onChange={(f) => { setFilters(f); setPage(1); }}
               showTribeFilter={profile.role === "super_admin"}
             />
           </div>
@@ -155,7 +164,39 @@ export default function AdminDashboard() {
               <span className="text-sm">Loading members…</span>
             </div>
           ) : (
-            <MemberTable members={filtered} onEdit={setEditing} />
+            <>
+              <MemberTable members={paginatedMembers} onEdit={setEditing} />
+
+              {filtered.length > PAGE_SIZE && (
+                <div className="flex items-center justify-between gap-4 pt-2">
+                  <p className="text-xs text-ink-muted">
+                    Showing{" "}
+                    <span className="font-medium text-ink">{(page - 1) * PAGE_SIZE + 1}</span>
+                    {" \u2013 "}
+                    <span className="font-medium text-ink">
+                      {Math.min(page * PAGE_SIZE, filtered.length)}
+                    </span>{" "}
+                    of <span className="font-medium text-ink">{filtered.length}</span>
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                      disabled={page <= 1}
+                      className="px-3 py-1.5 text-xs rounded-lg border border-border hover:bg-cream disabled:opacity-30 disabled:pointer-events-none transition"
+                    >
+                      Previous
+                    </button>
+                    <button
+                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={page >= totalPages}
+                      className="px-3 py-1.5 text-xs rounded-lg border border-border hover:bg-cream disabled:opacity-30 disabled:pointer-events-none transition"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
 

@@ -28,12 +28,22 @@ export default function Home() {
             &ldquo;Let no man despise thy youth.&rdquo; — 1 Timothy 4:12
           </p>
 
-          <Link
-            href="/register"
-            className="inline-block px-8 py-3 rounded-full bg-orange text-white font-medium hover:bg-orange-deep hover:scale-[1.02] active:scale-[0.98] transition-all shadow-sm"
-          >
-            Member Registration
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link
+              href="/register"
+              className="inline-block px-8 py-3 rounded-full bg-orange text-white font-medium hover:bg-orange-deep hover:scale-[1.02] active:scale-[0.98] transition-all shadow-sm"
+            >
+              Member Registration
+            </Link>
+            <a
+              href="https://mount-up-camp.vercel.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block px-8 py-3 rounded-full border-2 border-orange text-orange font-medium hover:bg-orange hover:text-white hover:scale-[1.02] active:scale-[0.98] transition-all shadow-sm"
+            >
+              Camp Registration
+            </a>
+          </div>
         </div>
       </div>
     </main>
