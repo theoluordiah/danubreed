@@ -35,14 +35,14 @@ export default function Home() {
             >
               Member Registration
             </Link>
-            <a
+            {/* <a
               href="https://mount-up-camp.vercel.app/"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-block px-8 py-3 rounded-full border-2 border-orange text-orange font-medium hover:bg-orange hover:text-white hover:scale-[1.02] active:scale-[0.98] transition-all shadow-sm"
             >
               Camp Registration
-            </a>
+            </a> */}
           </div>
         </div>
       </div>
